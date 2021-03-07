@@ -10,4 +10,4 @@ Exemplo:
 
 `python main.py "2+2-3+23-244"`
 
-<img src=diagrama.png>
+<img src=Diagrama+-.png>

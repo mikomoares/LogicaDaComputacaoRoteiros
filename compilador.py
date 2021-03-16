@@ -64,7 +64,7 @@ class Parser:
         print(Parser.parseExpression())
 
 
-entry = input('Expressao:')
+entry = argv[1]
 Parser.run(entry)
 
 

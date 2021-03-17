@@ -1,4 +1,5 @@
 from sys import argv
+import re
 
 class Token:
     def __init__(self, token_type, token_value):
@@ -28,40 +29,69 @@ class Tokenizer:
         elif(self.origin[self.position] == '+'):
             new = Token('PLUS','+')
             self.position+=1
+        elif(self.origin[self.position] == '*'):
+            new = Token('MULT','*')
+            self.position+=1
+        elif(self.origin[self.position] == '/'):
+            new = Token('DIV','/')
+            self.position+=1
         else:
             raise ValueError("ValueError exception thrown")
         self.actual = new
         return new
 
 class Parser:
-    def parseExpression():
+    def parseTerm():
         if Parser.tokens.actual.type == 'INT':
             resultado = Parser.tokens.actual.value
             Parser.tokens.selectNext()
-            while Parser.tokens.actual.type == 'PLUS' or Parser.tokens.actual.type == 'MINUS':
-                if Parser.tokens.actual.type == 'MINUS':
+            while Parser.tokens.actual.type == 'MULT' or Parser.tokens.actual.type == 'DIV':
+                if Parser.tokens.actual.type == 'DIV':
                     Parser.tokens.selectNext()
                     if Parser.tokens.actual.type == 'INT':
-                        resultado-=Parser.tokens.actual.value
+                        resultado/=Parser.tokens.actual.value
                     else:
                         raise ValueError("ValueError exception thrown")
-                elif Parser.tokens.actual.type == 'PLUS':
+                elif Parser.tokens.actual.type == 'MULT':
                     Parser.tokens.selectNext()
                     if Parser.tokens.actual.type == 'INT':
-                        resultado+=Parser.tokens.actual.value
+                        resultado*=Parser.tokens.actual.value
                     else:
                         raise ValueError("ValueError exception thrown")
                 Parser.tokens.selectNext()
-            if Parser.tokens.actual.type == 'EOF':
-                return resultado
-            else:
-                raise ValueError("ValueError exception thrown")
+            return resultado
         else:
             raise ValueError("ValueError exception thrown")
+
+    def parseExpression():
+        resultado = Parser.parseTerm()
+        while Parser.tokens.actual.type == 'PLUS' or Parser.tokens.actual.type == 'MINUS':
+            if Parser.tokens.actual.type == 'MINUS':
+                Parser.tokens.selectNext()
+                if Parser.tokens.actual.type == 'INT':
+                    resultado-=Parser.parseTerm()
+                else:
+                    raise ValueError("ValueError exception thrown")
+            elif Parser.tokens.actual.type == 'PLUS':
+                Parser.tokens.selectNext()
+                if Parser.tokens.actual.type == 'INT':
+                    resultado+=Parser.parseTerm()
+                else:
+                    raise ValueError("ValueError exception thrown")
+            Parser.tokens.selectNext()
+        return resultado
     
     def run(code):
-        Parser.tokens = Tokenizer(code)
+        filtered_code = Preproc.filter(code)
+        Parser.tokens = Tokenizer(filtered_code)
         print(Parser.parseExpression())
+
+class Preproc:
+    def filter(code):
+        filtered_code = re.sub(r"\/\*(.*?)\*\/", "", code)
+        print (filtered_code)
+        return filtered_code
+
 
 
 entry = argv[1]

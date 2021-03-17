@@ -89,7 +89,6 @@ class Parser:
 class Preproc:
     def filter(code):
         filtered_code = re.sub(r"\/\*(.*?)\*\/", "", code)
-        print (filtered_code)
         return filtered_code
 
 

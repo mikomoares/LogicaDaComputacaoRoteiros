@@ -49,7 +49,7 @@ class Parser:
                 if Parser.tokens.actual.type == 'DIV':
                     Parser.tokens.selectNext()
                     if Parser.tokens.actual.type == 'INT':
-                        resultado/=Parser.tokens.actual.value
+                        resultado//=Parser.tokens.actual.value
                     else:
                         raise ValueError("ValueError exception thrown")
                 elif Parser.tokens.actual.type == 'MULT':
@@ -78,7 +78,6 @@ class Parser:
                     resultado+=Parser.parseTerm()
                 else:
                     raise ValueError("ValueError exception thrown")
-            Parser.tokens.selectNext()
         return resultado
     
     def run(code):

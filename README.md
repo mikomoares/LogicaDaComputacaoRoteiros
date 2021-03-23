@@ -8,7 +8,7 @@ Para utilizar o compilador utilize o comando a seguir:
 
 Exemplo:
 
-`python compilador.py "2+2-3*23/244"`
+`python compilador.py "+(2+2)-3*23/244"`
 
 ### Diagrama Sintático:
 
@@ -17,6 +17,8 @@ Exemplo:
 ### EBNF:
 
 ```
-expressão = term,{("+"|"-"),term};
-term = numero,{("*"|"/"),num};
+EXPRESSION = TERM, { ("+" | "-"), TERM } ;
+TERM = FACTOR, { ("*" | "/"), FACTOR } ;
+FACTOR = ("+" | "-"), FACTOR | "(", EXPRESSION,")" | number ;
+
 ```

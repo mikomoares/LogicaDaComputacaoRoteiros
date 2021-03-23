@@ -35,55 +35,68 @@ class Tokenizer:
         elif(self.origin[self.position] == '/'):
             new = Token('DIV','/')
             self.position+=1
+        elif(self.origin[self.position] == '('):
+            new = Token('(','(')
+            self.position+=1
+        elif(self.origin[self.position] == ')'):
+            new = Token(')',')')
+            self.position+=1
         else:
             raise ValueError("ValueError exception thrown")
         self.actual = new
         return new
 
 class Parser:
-    def parseTerm():
-        if Parser.tokens.actual.type == 'INT':
+    def parseFactor():
+        resultado = 0
+        if Parser.tokens.actual.type == 'PLUS':
+            Parser.tokens.selectNext()
+            resultado += Parser.parseFactor()
+        elif Parser.tokens.actual.type == 'MINUS':
+            Parser.tokens.selectNext()
+            resultado -= Parser.parseFactor()
+        elif Parser.tokens.actual.type == '(':
+            Parser.tokens.selectNext()
+            resultado = Parser.parseExpression()
+            if Parser.tokens.actual.type == ')':
+                Parser.tokens.selectNext()
+            else:
+                raise ValueError("ValueError exception thrown")
+        elif Parser.tokens.actual.type == 'INT':
             resultado = Parser.tokens.actual.value
             Parser.tokens.selectNext()
-            while Parser.tokens.actual.type == 'MULT' or Parser.tokens.actual.type == 'DIV':
-                if Parser.tokens.actual.type == 'DIV':
-                    Parser.tokens.selectNext()
-                    if Parser.tokens.actual.type == 'INT':
-                        resultado//=Parser.tokens.actual.value
-                    else:
-                        raise ValueError("ValueError exception thrown")
-                elif Parser.tokens.actual.type == 'MULT':
-                    Parser.tokens.selectNext()
-                    if Parser.tokens.actual.type == 'INT':
-                        resultado*=Parser.tokens.actual.value
-                    else:
-                        raise ValueError("ValueError exception thrown")
+        return resultado
+
+    def parseTerm():
+        resultado = Parser.parseFactor()
+        while Parser.tokens.actual.type == 'MULT' or Parser.tokens.actual.type == 'DIV':
+            if Parser.tokens.actual.type == 'DIV':
                 Parser.tokens.selectNext()
-            return resultado
-        else:
-            raise ValueError("ValueError exception thrown")
+                resultado//=Parser.parseFactor()
+            elif Parser.tokens.actual.type == 'MULT':
+                Parser.tokens.selectNext()
+                resultado*=Parser.parseFactor()
+        return resultado
 
     def parseExpression():
         resultado = Parser.parseTerm()
         while Parser.tokens.actual.type == 'PLUS' or Parser.tokens.actual.type == 'MINUS':
             if Parser.tokens.actual.type == 'MINUS':
                 Parser.tokens.selectNext()
-                if Parser.tokens.actual.type == 'INT':
-                    resultado-=Parser.parseTerm()
-                else:
-                    raise ValueError("ValueError exception thrown")
+                resultado-=Parser.parseTerm()
             elif Parser.tokens.actual.type == 'PLUS':
                 Parser.tokens.selectNext()
-                if Parser.tokens.actual.type == 'INT':
-                    resultado+=Parser.parseTerm()
-                else:
-                    raise ValueError("ValueError exception thrown")
+                resultado+=Parser.parseTerm()
         return resultado
     
     def run(code):
         filtered_code = Preproc.filter(code)
         Parser.tokens = Tokenizer(filtered_code)
-        print(Parser.parseExpression())
+        resposta = Parser.parseExpression()
+        if Parser.tokens.actual.type == 'EOF':
+            print(resposta)
+        else:
+            raise ValueError("ValueError exception thrown")
 
 class Preproc:
     def filter(code):

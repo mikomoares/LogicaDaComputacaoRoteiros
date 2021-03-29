@@ -65,6 +65,8 @@ class Parser:
         elif Parser.tokens.actual.type == 'INT':
             resultado = Parser.tokens.actual.value
             Parser.tokens.selectNext()
+        else:
+            raise ValueError("ValueError exception thrown")
         return resultado
 
     def parseTerm():

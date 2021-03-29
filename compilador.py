@@ -83,7 +83,11 @@ class Parser:
     def run(code):
         filtered_code = Preproc.filter(code)
         Parser.tokens = Tokenizer(filtered_code)
-        print(Parser.parseExpression())
+        result = Parser.parseExpression()
+        if Parser.tokens.actual.type == 'EOF':
+            print(result)
+        else:
+            raise ValueError("ValueError exception throw")
 
 class Preproc:
     def filter(code):

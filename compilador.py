@@ -1,5 +1,6 @@
 from sys import argv
 import re
+from nodes import *
 
 class Token:
     def __init__(self, token_type, token_value):
@@ -48,13 +49,15 @@ class Tokenizer:
 
 class Parser:
     def parseFactor():
-        resultado = 0
+
         if Parser.tokens.actual.type == 'PLUS':
             Parser.tokens.selectNext()
-            resultado += Parser.parseFactor()
+            resultado = UnOp('+', [Parser.parseFactor()])
+
         elif Parser.tokens.actual.type == 'MINUS':
             Parser.tokens.selectNext()
-            resultado -= Parser.parseFactor()
+            resultado = UnOp('-', [Parser.parseFactor()])
+
         elif Parser.tokens.actual.type == '(':
             Parser.tokens.selectNext()
             resultado = Parser.parseExpression()
@@ -62,33 +65,44 @@ class Parser:
                 Parser.tokens.selectNext()
             else:
                 raise ValueError("ValueError exception thrown")
+
         elif Parser.tokens.actual.type == 'INT':
-            resultado = Parser.tokens.actual.value
+            resultado = IntVal(Parser.tokens.actual.value, [])
             Parser.tokens.selectNext()
+
         else:
             raise ValueError("ValueError exception thrown")
+
         return resultado
 
     def parseTerm():
         resultado = Parser.parseFactor()
+
         while Parser.tokens.actual.type == 'MULT' or Parser.tokens.actual.type == 'DIV':
+
             if Parser.tokens.actual.type == 'DIV':
                 Parser.tokens.selectNext()
-                resultado//=Parser.parseFactor()
+                resultado = BinOp('/', [resultado, Parser.parseFactor()])
+
             elif Parser.tokens.actual.type == 'MULT':
                 Parser.tokens.selectNext()
-                resultado*=Parser.parseFactor()
+                resultado = BinOp('*', [resultado, Parser.parseFactor()])
+
         return resultado
 
     def parseExpression():
         resultado = Parser.parseTerm()
+
         while Parser.tokens.actual.type == 'PLUS' or Parser.tokens.actual.type == 'MINUS':
+
             if Parser.tokens.actual.type == 'MINUS':
                 Parser.tokens.selectNext()
-                resultado-=Parser.parseTerm()
+                resultado = BinOp('-', [resultado, Parser.parseTerm()])
+
             elif Parser.tokens.actual.type == 'PLUS':
                 Parser.tokens.selectNext()
-                resultado+=Parser.parseTerm()
+                resultado = BinOp('+', [resultado, Parser.parseTerm()])
+
         return resultado
     
     def run(code):
@@ -96,7 +110,7 @@ class Parser:
         Parser.tokens = Tokenizer(filtered_code)
         resposta = Parser.parseExpression()
         if Parser.tokens.actual.type == 'EOF':
-            print(resposta)
+            print(resposta.Evaluate())
         else:
             raise ValueError("ValueError exception thrown")
 
@@ -105,9 +119,7 @@ class Preproc:
         filtered_code = re.sub(r"\/\*(.*?)\*\/", "", code)
         return filtered_code
 
+with open('input.c', 'r') as filehandle:
+    entry = filehandle.read()
 
-
-entry = argv[1]
 Parser.run(entry)
-
-

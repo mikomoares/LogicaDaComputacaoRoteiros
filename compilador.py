@@ -119,7 +119,8 @@ class Preproc:
         filtered_code = re.sub(r"\/\*(.*?)\*\/", "", code)
         return filtered_code
 
-with open('input.c', 'r') as filehandle:
-    entry = filehandle.read()
+file = argv[1] 
+with open (file, 'r') as file:
+    entry = file.read()
 
 Parser.run(entry)

@@ -2,6 +2,9 @@ from sys import argv
 import re
 from nodes import *
 
+reserved = ["println"]
+PRINTLN = reserved
+
 class Token:
     def __init__(self, token_type, token_value):
         self.type = token_type
@@ -15,10 +18,13 @@ class Tokenizer:
 
     def selectNext(self):
         num=''
-        while self.position<len(self.origin) and self.origin[self.position]==" ":
+        while self.position<len(self.origin) and (self.origin[self.position]==" " or  self.origin[self.position]=="\n"):
             self.position+=1
         if self.position == len(self.origin):
             new = Token("EOF", "")
+        elif self.origin[self.position] == ';':
+            new = Token("LB", ";")
+            self.position+=1
         elif(self.origin[self.position].isdigit()):
             while(self.position<len(self.origin) and self.origin[self.position].isdigit()):
                 num+=self.origin[self.position]
@@ -42,75 +48,136 @@ class Tokenizer:
         elif(self.origin[self.position] == ')'):
             new = Token(')',')')
             self.position+=1
+        elif self.origin[self.position] == '=':
+            new = Token("ASSIG", "=")
+            self.position+=1
+        elif self.origin[self.position].isalpha():
+            num+=self.origin[self.position]
+            self.position+=1
+            while self.position<len(self.origin) and (self.origin[self.position].isdigit() or self.origin[self.position].isalpha() or self.origin[self.position]=="_"):
+                num+=self.origin[self.position]
+                self.position+=1
+
+            new = num.upper()
+
+            if num in reserved:
+                new = Token(new, new)
+            else: 
+                new = Token("IDENT", new)
         else:
             raise ValueError("ValueError exception thrown")
         self.actual = new
         return new
 
 class Parser:
+
+    def parseBlock():
+        results=[]
+        while Parser.tokens.actual.type != 'EOF':
+            results.append(Parser.parseCommand())
+            if Parser.tokens.actual.type != 'LB':
+                raise ValueError("ValueError exception thrown")
+            else:
+                Parser.tokens.selectNext()
+
+        return BlockOp("block", results)
+
+    def parseCommand():
+        if Parser.tokens.actual.type == 'IDENT':
+            var = Parser.tokens.actual.value
+            Parser.tokens.selectNext()
+            if Parser.tokens.actual.type == 'ASSIG':
+                Parser.tokens.selectNext()
+                result = AssignmentOp("=", [var, Parser.parseExpression()])
+            else:
+                raise ValueError("ValueError exception thrown")
+
+        elif Parser.tokens.actual.type == 'PRINTLN':
+            Parser.tokens.selectNext()
+            if Parser.tokens.actual.type == '(':
+                Parser.tokens.selectNext()
+                result_tmp = Parser.parseExpression()
+                if Parser.tokens.actual.type == ')':
+                    Parser.tokens.selectNext()
+                else:
+                    raise ValueError("ValueError exception thrown")
+            result = PrintOp("PRINTLN", [result_tmp])
+
+        else:
+            result = NoOp(0, [])
+
+        return result
+
+
+
     def parseFactor():
 
         if Parser.tokens.actual.type == 'PLUS':
             Parser.tokens.selectNext()
-            resultado = UnOp('+', [Parser.parseFactor()])
+            result = UnOp('+', [Parser.parseFactor()])
 
         elif Parser.tokens.actual.type == 'MINUS':
             Parser.tokens.selectNext()
-            resultado = UnOp('-', [Parser.parseFactor()])
+            result = UnOp('-', [Parser.parseFactor()])
 
         elif Parser.tokens.actual.type == '(':
             Parser.tokens.selectNext()
-            resultado = Parser.parseExpression()
+            result = Parser.parseExpression()
             if Parser.tokens.actual.type == ')':
                 Parser.tokens.selectNext()
             else:
                 raise ValueError("ValueError exception thrown")
 
         elif Parser.tokens.actual.type == 'INT':
-            resultado = IntVal(Parser.tokens.actual.value, [])
+            result = IntVal(Parser.tokens.actual.value, [])
+            Parser.tokens.selectNext()
+
+        elif Parser.tokens.actual.type == 'IDENT':
+            result = IdentifierOp(Parser.tokens.actual.value, [])
             Parser.tokens.selectNext()
 
         else:
             raise ValueError("ValueError exception thrown")
 
-        return resultado
+        return result
 
     def parseTerm():
-        resultado = Parser.parseFactor()
+        result = Parser.parseFactor()
 
         while Parser.tokens.actual.type == 'MULT' or Parser.tokens.actual.type == 'DIV':
 
             if Parser.tokens.actual.type == 'DIV':
                 Parser.tokens.selectNext()
-                resultado = BinOp('/', [resultado, Parser.parseFactor()])
+                result = BinOp('/', [result, Parser.parseFactor()])
 
             elif Parser.tokens.actual.type == 'MULT':
                 Parser.tokens.selectNext()
-                resultado = BinOp('*', [resultado, Parser.parseFactor()])
+                result = BinOp('*', [result, Parser.parseFactor()])
 
-        return resultado
+        return result
 
     def parseExpression():
-        resultado = Parser.parseTerm()
+        result = Parser.parseTerm()
 
         while Parser.tokens.actual.type == 'PLUS' or Parser.tokens.actual.type == 'MINUS':
 
             if Parser.tokens.actual.type == 'MINUS':
                 Parser.tokens.selectNext()
-                resultado = BinOp('-', [resultado, Parser.parseTerm()])
+                result = BinOp('-', [result, Parser.parseTerm()])
 
             elif Parser.tokens.actual.type == 'PLUS':
                 Parser.tokens.selectNext()
-                resultado = BinOp('+', [resultado, Parser.parseTerm()])
+                result = BinOp('+', [result, Parser.parseTerm()])
 
-        return resultado
+        return result
     
     def run(code):
+        table = SymbolTable()
         filtered_code = Preproc.filter(code)
         Parser.tokens = Tokenizer(filtered_code)
-        resposta = Parser.parseExpression()
+        resposta = Parser.parseBlock()
         if Parser.tokens.actual.type == 'EOF':
-            print(resposta.Evaluate())
+            resposta.Evaluate(table)
         else:
             raise ValueError("ValueError exception thrown")
 

@@ -58,7 +58,7 @@ class Tokenizer:
                 num+=self.origin[self.position]
                 self.position+=1
 
-            new = num.upper()
+            new = num
 
             if num in reserved:
                 new = Token(new, new)
@@ -92,7 +92,7 @@ class Parser:
             else:
                 raise ValueError("ValueError exception thrown")
 
-        elif Parser.tokens.actual.type == 'PRINTLN':
+        elif Parser.tokens.actual.type == 'println':
             Parser.tokens.selectNext()
             if Parser.tokens.actual.type == '(':
                 Parser.tokens.selectNext()

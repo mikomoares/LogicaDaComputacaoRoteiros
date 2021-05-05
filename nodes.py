@@ -29,9 +29,9 @@ class UnOp(Node):
 
     def Evaluate(self, table):
         if self.value == '+':
-            return self.children[0].Evaluate()
+            return self.children[0].Evaluate(table)
         else:
-            return -self.children[0].Evaluate()
+            return -self.children[0].Evaluate(table)
 
 class IntVal(Node):
     def __init__(self, value, children):

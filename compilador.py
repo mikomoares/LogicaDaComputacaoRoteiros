@@ -2,8 +2,7 @@ from sys import argv
 import re
 from nodes import *
 
-reserved = ["println"]
-PRINTLN = reserved
+reserved = ["println", "while", "if", "else", "readln"]
 
 class Token:
     def __init__(self, token_type, token_value):
@@ -36,6 +35,9 @@ class Tokenizer:
         elif(self.origin[self.position] == '+'):
             new = Token('PLUS','+')
             self.position+=1
+        elif(self.origin[self.position] == '!'):
+            new = Token('NOT','!')
+            self.position+=1
         elif(self.origin[self.position] == '*'):
             new = Token('MULT','*')
             self.position+=1
@@ -48,8 +50,29 @@ class Tokenizer:
         elif(self.origin[self.position] == ')'):
             new = Token(')',')')
             self.position+=1
+        elif(self.origin[self.position] == '>'):
+            new = Token('GREAT','>')
+            self.position+=1
+        elif(self.origin[self.position] == '<'):
+            new = Token('LESS','<')
+            self.position+=1
+        elif(self.origin[self.position] == "&" and self.origin[self.position+1] == "&"):
+            self.position+=2
+            new = Token("AND", "&&")
+        elif(self.origin[self.position] == "|" and self.origin[self.position+1] == "|"):
+            self.position+=2
+            new = Token("OR", "||")
+        elif(self.origin[self.position] == "=" and self.origin[self.position+1] == "="):
+            self.position+=2
+            new = Token("EQUAL", "==")
         elif self.origin[self.position] == '=':
             new = Token("ASSIG", "=")
+            self.position+=1
+        elif self.origin[self.position] == '{':
+            new = Token("OPEN", "{")
+            self.position+=1
+        elif self.origin[self.position] == '}':
+            new = Token("CLOSE", "}")
             self.position+=1
         elif self.origin[self.position].isalpha():
             num+=self.origin[self.position]
@@ -73,14 +96,16 @@ class Parser:
 
     def parseBlock():
         results=[]
-        while Parser.tokens.actual.type != 'EOF':
-            results.append(Parser.parseCommand())
-            if Parser.tokens.actual.type != 'LB':
-                raise ValueError("ValueError exception thrown")
-            else:
-                Parser.tokens.selectNext()
-
-        return BlockOp("block", results)
+        if Parser.tokens.actual.type == 'OPEN':
+            Parser.tokens.selectNext()
+            while Parser.tokens.actual.type != 'CLOSE':
+                if Parser.tokens.actual.type == 'EOF':
+                    raise ValueError("ValueError exception thrown")
+                results.append(Parser.parseCommand())
+            Parser.tokens.selectNext()
+            return BlockOp("block", results)
+        else:
+            raise ValueError("ValueError exception thrown")
 
     def parseCommand():
         if Parser.tokens.actual.type == 'IDENT':
@@ -88,7 +113,11 @@ class Parser:
             Parser.tokens.selectNext()
             if Parser.tokens.actual.type == 'ASSIG':
                 Parser.tokens.selectNext()
-                result = AssignmentOp("=", [var, Parser.parseExpression()])
+                result = AssignmentOp("=", [var, Parser.parseOrExpr()])
+            else:
+                raise ValueError("ValueError exception thrown")
+            if Parser.tokens.actual.type == 'LB':
+                Parser.tokens.selectNext()
             else:
                 raise ValueError("ValueError exception thrown")
 
@@ -96,12 +125,54 @@ class Parser:
             Parser.tokens.selectNext()
             if Parser.tokens.actual.type == '(':
                 Parser.tokens.selectNext()
-                result_tmp = Parser.parseExpression()
+                result_tmp = Parser.parseOrExpr()
                 if Parser.tokens.actual.type == ')':
                     Parser.tokens.selectNext()
                 else:
                     raise ValueError("ValueError exception thrown")
+                if Parser.tokens.actual.type == 'LB':
+                    Parser.tokens.selectNext()
+                else:
+                    raise ValueError("ValueError exception thrown")
             result = PrintOp("PRINTLN", [result_tmp])
+
+        elif Parser.tokens.actual.type == 'while':
+            Parser.tokens.selectNext()
+            if Parser.tokens.actual.type == '(':
+                Parser.tokens.selectNext()
+                expr = Parser.parseOrExpr()
+                if Parser.tokens.actual.type == ')':
+                    Parser.tokens.selectNext()
+                    block = Parser.parseCommand()
+                else:
+                    raise ValueError("ValueError exception thrown")
+            else:
+                raise ValueError("ValueError exception thrown")
+            result = WhileOp("WHILE", [expr,block])
+
+        elif Parser.tokens.actual.type == 'if':
+            child = []
+            Parser.tokens.selectNext()
+            if Parser.tokens.actual.type == '(':
+                Parser.tokens.selectNext()
+                expr = Parser.parseOrExpr()
+                child.append(expr)
+                if Parser.tokens.actual.type == ')':
+                    Parser.tokens.selectNext()
+                    block = Parser.parseCommand()
+                    child.append(block)
+                else:
+                    raise ValueError("ValueError exception thrown")
+                if Parser.tokens.actual.type == 'else':
+                    Parser.tokens.selectNext()
+                    elseExpr = Parser.parseCommand()
+                    child.append(elseExpr)
+            else:
+                raise ValueError("ValueError exception thrown")
+            result = IfOp("IF", child)
+
+        elif Parser.tokens.actual.type =='OPEN':
+            result = Parser.parseBlock()
 
         else:
             result = NoOp(0, [])
@@ -119,10 +190,14 @@ class Parser:
         elif Parser.tokens.actual.type == 'MINUS':
             Parser.tokens.selectNext()
             result = UnOp('-', [Parser.parseFactor()])
+        
+        elif Parser.tokens.actual.type == 'NOT':
+            Parser.tokens.selectNext()
+            result = UnOp('!', [Parser.parseFactor()])
 
         elif Parser.tokens.actual.type == '(':
             Parser.tokens.selectNext()
-            result = Parser.parseExpression()
+            result = Parser.parseOrExpr()
             if Parser.tokens.actual.type == ')':
                 Parser.tokens.selectNext()
             else:
@@ -135,6 +210,18 @@ class Parser:
         elif Parser.tokens.actual.type == 'IDENT':
             result = IdentifierOp(Parser.tokens.actual.value, [])
             Parser.tokens.selectNext()
+
+        elif Parser.tokens.actual.type == 'readln':
+            Parser.tokens.selectNext()
+            if Parser.tokens.actual.type == '(':
+                Parser.tokens.selectNext()
+                if Parser.tokens.actual.type == ')':
+                    Parser.tokens.selectNext()
+                else:
+                    raise ValueError("ValueError exception thrown")
+            else:
+                raise ValueError("ValueError exception thrown")
+            result = InputOp('readln', [])
 
         else:
             raise ValueError("ValueError exception thrown")
@@ -168,6 +255,48 @@ class Parser:
             elif Parser.tokens.actual.type == 'PLUS':
                 Parser.tokens.selectNext()
                 result = BinOp('+', [result, Parser.parseTerm()])
+
+        return result
+
+    def parseRelExpr():
+        result = Parser.parseExpression()
+
+        while Parser.tokens.actual.type == 'GREAT' or Parser.tokens.actual.type == 'LESS':
+
+            if Parser.tokens.actual.type == 'GREAT':
+                Parser.tokens.selectNext()
+                result = BinOp('>', [result, Parser.parseExpression()])
+
+            elif Parser.tokens.actual.type == 'LESS':
+                Parser.tokens.selectNext()
+                result = BinOp('<', [result, Parser.parseExpression()])
+
+        return result
+
+    def parseEqExpr():
+        result = Parser.parseRelExpr()
+
+        while Parser.tokens.actual.type == 'EQUAL':
+            Parser.tokens.selectNext()
+            result = BinOp('==', [result, Parser.parseRelExpr()])
+
+        return result
+
+    def parseAndExpr():
+        result = Parser.parseEqExpr()
+
+        while Parser.tokens.actual.type == 'AND':
+            Parser.tokens.selectNext()
+            result = BinOp('&&', [result, Parser.parseEqExpr()])
+
+        return result
+
+    def parseOrExpr():
+        result = Parser.parseAndExpr()
+
+        while Parser.tokens.actual.type == 'OR':
+            Parser.tokens.selectNext()
+            result = BinOp('||', [result, Parser.parseAndExpr()])
 
         return result
     

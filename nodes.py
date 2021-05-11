@@ -21,6 +21,16 @@ class BinOp(Node):
             return self.children[0].Evaluate(table) * self.children[1].Evaluate(table)
         elif self.value == '/':
             return self.children[0].Evaluate(table) // self.children[1].Evaluate(table)
+        elif(self.value == "&&"):
+            return(self.children[0].Evaluate(table) and self.children[1].Evaluate(table))
+        elif(self.value == "||"):
+            return(self.children[0].Evaluate(table) or self.children[1].Evaluate(table))
+        elif(self.value == ">"):
+            return(self.children[0].Evaluate(table) > self.children[1].Evaluate(table))
+        elif(self.value == "<"):
+            return(self.children[0].Evaluate(table) < self.children[1].Evaluate(table))
+        elif(self.value == "=="):
+            return(self.children[0].Evaluate(table) == self.children[1].Evaluate(table))
 
 class UnOp(Node):
     def __init__(self, value, children):
@@ -30,8 +40,10 @@ class UnOp(Node):
     def Evaluate(self, table):
         if self.value == '+':
             return self.children[0].Evaluate(table)
-        else:
+        elif self.value == "-":
             return -self.children[0].Evaluate(table)
+        elif self.value == "!": 
+            return not(self.children[0].Evaluate(table))
 
 class IntVal(Node):
     def __init__(self, value, children):
@@ -81,6 +93,35 @@ class BlockOp(Node):
     def Evaluate(self, table):
         for f in self.children:
             f.Evaluate(table)
+        
+class InputOp(Node):
+    def __init__(self, value, children):
+        self.value = value
+        self.children = children
+
+    def Evaluate(self, table):
+        value = int(input())
+        return value
+
+class WhileOp(Node):
+    def __init__(self, value, children):
+        self.value = value
+        self.children = children
+
+    def Evaluate(self, table):
+        while(self.children[0].Evaluate(table)):
+            self.children[1].Evaluate(table)
+
+class IfOp(Node):
+    def __init__(self, value, children):
+        self.value = value
+        self.children = children
+
+    def Evaluate(self, table):
+        if(self.children[0].Evaluate(table)):
+            self.children[1].Evaluate(table)
+        elif(len(self.children) == 3):
+            self.children[2].Evaluate(table)
 
 class SymbolTable:
     def __init__(self):
@@ -94,3 +135,4 @@ class SymbolTable:
 
     def setter(self, var, value):
         self.dic_var[var] = value
+

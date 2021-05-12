@@ -28,6 +28,8 @@ class Tokenizer:
             while(self.position<len(self.origin) and self.origin[self.position].isdigit()):
                 num+=self.origin[self.position]
                 self.position+=1
+                if (self.origin[self.position].isalpha()):
+                    raise ValueError("ValueError exception thrown")
             new = Token('INT', int(num))
         elif(self.origin[self.position] == '-'):
             new = Token('MINUS','-')
@@ -174,9 +176,13 @@ class Parser:
         elif Parser.tokens.actual.type =='OPEN':
             result = Parser.parseBlock()
 
-        else:
+        elif Parser.tokens.actual.type =='LB':
             result = NoOp(0, [])
-
+            Parser.tokens.selectNext()
+            
+        else:
+            raise ValueError("ValueError exception thrown")
+            
         return result
 
 

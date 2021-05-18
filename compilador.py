@@ -2,7 +2,7 @@ from sys import argv
 import re
 from nodes import *
 
-reserved = ["println", "while", "if", "else", "readln"]
+reserved = ["println", "while", "if", "else", "readln", "int", "bool", "string"]
 
 class Token:
     def __init__(self, token_type, token_value):
@@ -115,13 +115,24 @@ class Parser:
             Parser.tokens.selectNext()
             if Parser.tokens.actual.type == 'ASSIG':
                 Parser.tokens.selectNext()
-                result = AssignmentOp("=", [var, Parser.parseOrExpr()])
+                result = AssignmentOp("=", [var, Parser.parseOrExpr(), ])
             else:
                 raise ValueError("ValueError exception thrown")
             if Parser.tokens.actual.type == 'LB':
                 Parser.tokens.selectNext()
             else:
                 raise ValueError("ValueError exception thrown")
+                
+        elif Parser.tokens.actual.type == 'int' or Parser.tokens.actual.type == 'bool' or Parser.tokens.actual.type == 'string':
+            tp = Parser.tokens.actual.type
+            Parser.tokens.selectNext()
+            var = Parser.tokens.actual.value
+            result = AssignmentOp(var, [var, tp])
+            if Parser.tokens.actual.type != "LB":
+                raise ValueError("ValueError exception thrown")
+            else: 
+                Parser.tokens.selectNext()
+            
 
         elif Parser.tokens.actual.type == 'println':
             Parser.tokens.selectNext()
@@ -211,6 +222,9 @@ class Parser:
 
         elif Parser.tokens.actual.type == 'INT':
             result = IntVal(Parser.tokens.actual.value, [])
+            Parser.tokens.selectNext()
+        elif Parser.tokens.actual.type == 'false' or Parser.tokens.actual.type == 'false':
+            result = BoolVal(Parser.tokens.actual.value, [])
             Parser.tokens.selectNext()
 
         elif Parser.tokens.actual.type == 'IDENT':

@@ -18,7 +18,8 @@ Exemplo (criando um arquivo "expressão1.c):
 
 ```
 BLOCK = "{", { COMMAND }, "}" ; 
-COMMAND = ( λ | ASSIGNMENT | PRINT | BLOCK | WHILE | IF), ";" ; 
+COMMAND = ( λ | ASSIGNMENT | PRINT | BLOCK | WHILE | IF | DECLARATOR), ";" ; 
+DECLARATOR = (INT | BOOL | STRING), IDENTIFIER;
 WHILE = "while", "(", OREXPR ,")", COMMAND;
 IF = "if", "(", OREXPR ,")", COMMAND, (("else", COMMAND) | λ );
 ASSIGNMENT = IDENTIFIER, "=", EXPRESSION ; 
@@ -29,10 +30,11 @@ EQEXPR = RELEXPR, { "==", RELEXPR } ;
 RELEXPR = EXPRESSION, { (">"|"<"),  EXPRESSION }
 EXPRESSION = TERM, { ("+" | "-"), TERM } ; 
 TERM = FACTOR, { ("*" | "/"), FACTOR } ; 
-FACTOR = (("+" | "-" | "!" ), FACTOR) | NUMBER | "(", OREXPR,  ")" | IDENTIFIER | READLN;
+FACTOR = (("+" | "-" | "!" ), FACTOR) | NUMBER | STRING | BOOL | "(", OREXPR,  ")" | IDENTIFIER | READLN;
 READLN = "readln", "(",")";
 IDENTIFIER = LETTER, { LETTER | DIGIT | "_" } ; 
 NUMBER = DIGIT, { DIGIT } ; 
+STRING = '"', { LETTER | DIGIT }, '"' ; 
 LETTER = ( a | ... | z | A | ... | Z ) ; 
 DIGIT = ( 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 0 ) ;
 

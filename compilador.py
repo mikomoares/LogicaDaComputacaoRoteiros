@@ -2,7 +2,7 @@ from sys import argv
 import re
 from nodes import *
 
-reserved = ["println", "while", "if", "else", "readln", "int", "bool", "string"]
+reserved = ["println", "while", "if", "else", "readln", "int", "bool", "string", "false", "true"]
 
 class Token:
     def __init__(self, token_type, token_value):
@@ -76,6 +76,13 @@ class Tokenizer:
         elif self.origin[self.position] == '}':
             new = Token("CLOSE", "}")
             self.position+=1
+        elif self.origin[self.position] == '"':
+            self.position+=1
+            while self.position<len(self.origin) and (self.origin[self.position] != '"'):
+                num+=self.origin[self.position]
+                self.position+=1
+            self.position+=1
+            new = Token("STRING", num)
         elif self.origin[self.position].isalpha():
             num+=self.origin[self.position]
             self.position+=1
@@ -115,7 +122,7 @@ class Parser:
             Parser.tokens.selectNext()
             if Parser.tokens.actual.type == 'ASSIG':
                 Parser.tokens.selectNext()
-                result = AssignmentOp("=", [var, Parser.parseOrExpr(), ])
+                result = AssignmentOp("=", [var, Parser.parseOrExpr()])
             else:
                 raise ValueError("ValueError exception thrown")
             if Parser.tokens.actual.type == 'LB':
@@ -128,10 +135,11 @@ class Parser:
             Parser.tokens.selectNext()
             var = Parser.tokens.actual.value
             result = AssignmentOp(var, [var, tp])
-            if Parser.tokens.actual.type != "LB":
-                raise ValueError("ValueError exception thrown")
-            else: 
+            Parser.tokens.selectNext()
+            if Parser.tokens.actual.type == "LB":
                 Parser.tokens.selectNext()
+            else: 
+                raise ValueError("ValueError exception thrown")
             
 
         elif Parser.tokens.actual.type == 'println':
@@ -199,7 +207,6 @@ class Parser:
 
 
     def parseFactor():
-
         if Parser.tokens.actual.type == 'PLUS':
             Parser.tokens.selectNext()
             result = UnOp('+', [Parser.parseFactor()])
@@ -223,8 +230,12 @@ class Parser:
         elif Parser.tokens.actual.type == 'INT':
             result = IntVal(Parser.tokens.actual.value, [])
             Parser.tokens.selectNext()
-        elif Parser.tokens.actual.type == 'false' or Parser.tokens.actual.type == 'false':
+        elif Parser.tokens.actual.type == 'false' or Parser.tokens.actual.type == 'true':
             result = BoolVal(Parser.tokens.actual.value, [])
+            Parser.tokens.selectNext()
+        
+        elif Parser.tokens.actual.type == 'STRING':
+            result = StringVal(Parser.tokens.actual.value, [])
             Parser.tokens.selectNext()
 
         elif Parser.tokens.actual.type == 'IDENT':

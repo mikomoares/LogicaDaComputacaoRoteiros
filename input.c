@@ -1,30 +1,16 @@
+
 {
-    string A;
-    int X;
-    int Y;
-    bool roda;
+    bool a;
+    int b;
+    int c;
+    
+    b = 32;
+    c = 32;
+    a = true;
 
-    A = readln();
-    X = 0;
-    Y = 3;
-    roda = false;
-
-    println("voce: " + A);
-
-    while (!roda && Y>X){
-        if (A == "oi" || A=="ola"){
-            println ("PC: ola, tudo bem?");
-        }
-        else{
-            println("xau");
-        }
-        X = X+1;
-        println(X);
+    if ((b && c) == a) {
+    	println(1);
+    }else{
+    	println(2);
     }
-    if("true"){
-        println("TRUEZOU");
-    }
-
-    println(Y+X);
-    println(A+X);
 }

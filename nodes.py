@@ -20,6 +20,8 @@ class BinOp(Node):
                 return (self.children[0].Evaluate(table)[0] + self.children[1].Evaluate(table)[0], "string")
             else:
                 raise ValueError("ValueError exception thrown")
+
+        
         elif (self.children[0].Evaluate(table)[1] != "string" and self.children[1].Evaluate(table)[1] != "string"):
             if self.value == '+':
                 result =  self.children[0].Evaluate(table)[0] + self.children[1].Evaluate(table)[0]
@@ -30,9 +32,9 @@ class BinOp(Node):
             elif self.value == '/':
                 result =  self.children[0].Evaluate(table)[0] // self.children[1].Evaluate(table)[0]
             elif(self.value == "&&"):
-                result = (self.children[0].Evaluate(table)[0] and self.children[1].Evaluate(table)[0])
+                result = bool((self.children[0].Evaluate(table)[0]) and bool(self.children[1].Evaluate(table)[0]))
             elif(self.value == "||"):
-                result = (self.children[0].Evaluate(table)[0] or self.children[1].Evaluate(table)[0])
+                result = bool((self.children[0].Evaluate(table)[0]) or bool(self.children[1].Evaluate(table)[0]))
             elif(self.value == ">"):
                 result = (self.children[0].Evaluate(table)[0] > self.children[1].Evaluate(table)[0])
             elif(self.value == "<"):
@@ -66,6 +68,7 @@ class IntVal(Node):
     def Evaluate(self, table):
         return (self.value, "int")
 
+
 class BoolVal(Node):
     def __init__(self, value, children):
         self.value = value
@@ -76,8 +79,6 @@ class BoolVal(Node):
             return (True, "bool")
         elif(self.value  == "false"):
             return (False, "bool")
-        else:
-            raise ValueError("ValueError exception thrown")
 
 class StringVal(Node):
     def __init__(self, value, children):
@@ -85,7 +86,10 @@ class StringVal(Node):
         self.children = children
 
     def Evaluate(self, table):
-        return (self.value, "string")
+        if type(self.value) == bool:
+            return (self.value, "string")
+        else:
+            raise ValueError("ValueError exception thrown")
 
 class NoOp(Node):
     def __init__(self, value, children):
@@ -116,9 +120,20 @@ class AssignmentOp(Node):
         self.children = children
 
     def Evaluate(self, table):
-        if self.children[0] in table.dic_var:
-            return table.setter(self.children[0], self.children[1].Evaluate(table)[0], self.children[1].Evaluate(table)[1])
         return table.declare(self.children[0], self.children[1])
+
+class SetterOp(Node):
+    def __init__(self, value, children):
+        self.value = value
+        self.children = children
+
+    def Evaluate(self, table):
+        if self.children[0] in table.dic_var:
+            return table.setter(self.children[0], self.children[1].Evaluate(table)[0])
+        else: 
+            raise ValueError("ValueError exception thrown")
+
+
 
 class IdentifierOp(Node):
     def __init__(self, value, children):
@@ -144,7 +159,7 @@ class InputOp(Node):
 
     def Evaluate(self, table):
         value = input()
-        return (value, "string")
+        return (value, "int")
 
 class WhileOp(Node):
     def __init__(self, value, children):
@@ -161,7 +176,9 @@ class IfOp(Node):
         self.children = children
 
     def Evaluate(self, table):
-        if(self.children[0].Evaluate(table)[0]):
+        if self.children[0].Evaluate(table)[1] == "string":
+            raise ValueError("ValueError exception thrown")
+        elif self.children[0].Evaluate(table)[0]:
             self.children[1].Evaluate(table)
         elif(len(self.children) == 3):
             self.children[2].Evaluate(table)
@@ -176,12 +193,14 @@ class SymbolTable:
         else:
             raise ValueError("ValueError exception thrown")
 
-    def setter(self, var, value, tp):
+    def setter(self, var, value):
         if var in self.dic_var:
-            if self.dic_var[var][1] == tp:
-                self.dic_var[var] = (value, tp)
-            else:
-                raise ValueError("ValueError exception thrown")
+            if self.dic_var[var][1] == "int":
+                self.dic_var[var] = (int(value), self.dic_var[var][1])
+            elif self.dic_var[var][1] == "bool":
+                self.dic_var[var] = (bool(value), self.dic_var[var][1])
+            elif self.dic_var[var][1] == "string":
+                self.dic_var[var] = (str(value), self.dic_var[var][1])
         else:
             raise ValueError("ValueError exception thrown")
 

@@ -17,7 +17,7 @@ class Tokenizer:
 
     def selectNext(self):
         num=''
-        while self.position<len(self.origin) and (self.origin[self.position]==" " or  self.origin[self.position]=="\n"):
+        while self.position<len(self.origin) and (self.origin[self.position]=="\n" or self.origin[self.position].isspace()):
             self.position+=1
         if self.position == len(self.origin):
             new = Token("EOF", "")
@@ -91,13 +91,14 @@ class Tokenizer:
                 self.position+=1
 
             new = num
-
             if num in reserved:
                 new = Token(new, new)
             else: 
                 new = Token("IDENT", new)
         else:
+            print(self.origin[self.position])
             raise ValueError("ValueError exception thrown")
+
         self.actual = new
         return new
 
@@ -122,7 +123,7 @@ class Parser:
             Parser.tokens.selectNext()
             if Parser.tokens.actual.type == 'ASSIG':
                 Parser.tokens.selectNext()
-                result = AssignmentOp("=", [var, Parser.parseOrExpr()])
+                result = SetterOp("=", [var, Parser.parseOrExpr()])
             else:
                 raise ValueError("ValueError exception thrown")
             if Parser.tokens.actual.type == 'LB':
@@ -140,7 +141,6 @@ class Parser:
                 Parser.tokens.selectNext()
             else: 
                 raise ValueError("ValueError exception thrown")
-            
 
         elif Parser.tokens.actual.type == 'println':
             Parser.tokens.selectNext()
@@ -253,7 +253,6 @@ class Parser:
             else:
                 raise ValueError("ValueError exception thrown")
             result = InputOp('readln', [])
-
         else:
             raise ValueError("ValueError exception thrown")
 

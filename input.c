@@ -1,16 +1,13 @@
-
 {
-    bool a;
-    int b;
-    int c;
-    
-    b = 32;
-    c = 32;
-    a = true;
-
-    if ((b && c) == a) {
-    	println(1);
-    }else{
-    	println(2);
-    }
+    int i;
+    int n;
+    int f;
+    n = 5;
+    i = 2;
+    f = 1;
+    while (i < n + 1) {
+        f = f * i;
+        i = i + 1;
+        }
+    println(f);
 }

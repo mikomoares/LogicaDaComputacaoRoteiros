@@ -96,9 +96,7 @@ class Tokenizer:
             else: 
                 new = Token("IDENT", new)
         else:
-            print(self.origin[self.position])
             raise ValueError("ValueError exception thrown")
-
         self.actual = new
         return new
 
@@ -123,7 +121,7 @@ class Parser:
             Parser.tokens.selectNext()
             if Parser.tokens.actual.type == 'ASSIG':
                 Parser.tokens.selectNext()
-                result = SetterOp("=", [var, Parser.parseOrExpr()])
+                result = AssignmentOp("=", [var, Parser.parseOrExpr()])
             else:
                 raise ValueError("ValueError exception thrown")
             if Parser.tokens.actual.type == 'LB':
@@ -135,7 +133,7 @@ class Parser:
             tp = Parser.tokens.actual.type
             Parser.tokens.selectNext()
             var = Parser.tokens.actual.value
-            result = AssignmentOp(var, [var, tp])
+            result = DefineOp(var, [var, tp])
             Parser.tokens.selectNext()
             if Parser.tokens.actual.type == "LB":
                 Parser.tokens.selectNext()
@@ -349,4 +347,9 @@ file = argv[1]
 with open (file, 'r') as file:
     entry = file.read()
 
+
+Assembly().startText()
+
 Parser.run(entry)
+
+Assembly().endText()

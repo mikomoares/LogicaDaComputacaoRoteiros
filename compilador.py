@@ -128,6 +128,8 @@ class Parser:
                                     Parser.tokens.selectNext()
                                     if Parser.tokens.actual.type == ',':
                                         Parser.tokens.selectNext()
+                                        if Parser.tokens.actual.type != 'int' and Parser.tokens.actual.type != 'bool' and Parser.tokens.actual.type != 'string':
+                                            raise ValueError("ValueError exception thrown")
                                     elif Parser.tokens.actual.type == ')':
                                         pass
                                     else:
@@ -266,6 +268,10 @@ class Parser:
             result = ReturnOp("return",[var])
             if Parser.tokens.actual.type == 'LB':
                 Parser.tokens.selectNext()
+                while Parser.tokens.actual.type != 'CLOSE' and Parser.tokens.actual.type != 'EOF':
+                    Parser.tokens.selectNext()
+                if Parser.tokens.actual.type == 'EOF':
+                    raise ValueError("ValueError exception thrown")
             else:
                 raise ValueError("ValueError exception thrown")
         else:

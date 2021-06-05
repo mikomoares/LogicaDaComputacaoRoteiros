@@ -11,7 +11,7 @@ int fatorial(int n){
     }
 
     return n*fatorial(n-1);
-}y
+}
 
 int main() {
     int a;

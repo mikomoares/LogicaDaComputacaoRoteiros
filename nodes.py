@@ -135,6 +135,8 @@ class FuncCall(Node):
         funcDef.children[1].Evaluate(func_table)
 
         if("return" in func_table.dic_var):
+            if funcDef.children[0].value[1] != func_table.dic_var["return"][1]:
+                raise ValueError("ValueError exception thrown")
             return func_table.dic_var["return"]
 
 class FuncDef(Node):
@@ -169,7 +171,10 @@ class AssignmentOp(Node):
         self.children = children
 
     def Evaluate(self, table):
-        return table.declare(self.children[0], self.children[1])
+        if self.children[0] not in table.dic_var:
+            return table.declare(self.children[0], self.children[1])
+        else:
+            raise ValueError("ValueError exception thrown")
 
 class SetterOp(Node):
     def __init__(self, value, children):

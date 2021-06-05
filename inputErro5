@@ -1,0 +1,19 @@
+int Erro5(bool x, int y){
+    return x;
+}
+int Erro5(bool x, int y){
+    return x;
+}
+
+
+int main() {
+    int a;
+    int b;
+    int x;
+    a = 3;
+    x = true;
+    x = Erro2(x, a);
+    println(x);
+    println(a);
+    println(b);
+}

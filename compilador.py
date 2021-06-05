@@ -99,7 +99,6 @@ class Tokenizer:
             else: 
                 new = Token("IDENT", new)
         else:
-            print(self.origin[self.position])
             raise ValueError("ValueError exception thrown")
 
         self.actual = new
@@ -186,7 +185,6 @@ class Parser:
                         raise ValueError("ValueError exception thrown")
                 Parser.tokens.selectNext()
                 result = FuncCall(var, par_list)
-                    
             else:
                 raise ValueError("ValueError exception thrown")
             if Parser.tokens.actual.type == 'LB':
@@ -261,7 +259,15 @@ class Parser:
         elif Parser.tokens.actual.type =='LB':
             result = NoOp(0, [])
             Parser.tokens.selectNext()
-            
+
+        elif Parser.tokens.actual.type =='return':
+            Parser.tokens.selectNext()
+            var = Parser.parseOrExpr()
+            result = ReturnOp("return",[var])
+            if Parser.tokens.actual.type == 'LB':
+                Parser.tokens.selectNext()
+            else:
+                raise ValueError("ValueError exception thrown")
         else:
             raise ValueError("ValueError exception thrown")
             
@@ -302,8 +308,23 @@ class Parser:
             Parser.tokens.selectNext()
 
         elif Parser.tokens.actual.type == 'IDENT':
-            result = IdentifierOp(Parser.tokens.actual.value, [])
+            var = Parser.tokens.actual.value
             Parser.tokens.selectNext()
+            if (Parser.tokens.actual.type == '('):
+                par_list = []
+                Parser.tokens.selectNext()
+                while Parser.tokens.actual.type != ')':
+                    par_list.append(Parser.parseOrExpr())
+                    if(Parser.tokens.actual.type == ','):
+                        Parser.tokens.selectNext()
+                    elif (Parser.tokens.actual.type == ')'):
+                        pass
+                    else:
+                        raise ValueError("ValueError exception thrown")
+                Parser.tokens.selectNext()
+                result = FuncCall(var, par_list)
+            else:
+                result =IdentifierOp(var, [])
 
         elif Parser.tokens.actual.type == 'readln':
             Parser.tokens.selectNext()

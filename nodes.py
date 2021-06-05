@@ -87,7 +87,7 @@ class StringVal(Node):
         self.children = children
 
     def Evaluate(self, table):
-        if type(self.value) == bool:
+        if type(self.value) == str:
             return (self.value, "string")
         else:
             raise ValueError("ValueError exception thrown")
@@ -120,8 +120,6 @@ class FuncCall(Node):
         self.children = children
     def Evaluate(self, table):
         func_table = SymbolTable();
-        print(self.value)
-        print(dic_func)
         if(self.value not in dic_func):
             raise ValueError("ValueError exception thrown")
         funcDef = dic_func[self.value]
@@ -136,8 +134,8 @@ class FuncCall(Node):
                 raise ValueError("ValueError exception thrown")
         funcDef.children[1].Evaluate(func_table)
 
-        # if("return" in func_table):
-        #     return func_table["return"]
+        if("return" in func_table.dic_var):
+            return func_table.dic_var["return"]
 
 class FuncDef(Node):
     def __init__(self, value, children):
@@ -156,6 +154,14 @@ class VarDec(Node):
     def Evaluate(self, table):
         for i in range(len(self.children)):
             self.children[i].Evaluate(table)
+
+class ReturnOp(Node):
+    def __init__(self, value, children):
+        self.value = value
+        self.children = children
+    def Evaluate(self, table):
+        if "return" not in table.dic_var:
+            table.dic_var["return"] = self.children[0].Evaluate(table)
 
 class AssignmentOp(Node):
     def __init__(self, value, children):

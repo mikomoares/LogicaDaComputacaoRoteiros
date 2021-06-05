@@ -17,8 +17,10 @@ Exemplo (criando um arquivo "expressão1.c):
 ### EBNF:
 
 ```
+FUNCDEFBLOCK = (λ | TYPE,IDENTIFIER, "(", {TYPE, IDENTIFIER},{(",",TYPE,IDENTIFIER)}, ")", COMMAND);
 BLOCK = "{", { COMMAND }, "}" ; 
-COMMAND = ( λ | ASSIGNMENT | PRINT | BLOCK | WHILE | IF | DECLARATOR), ";" ; 
+COMMAND = ( λ | ASSIGNMENT | PRINT | BLOCK | WHILE | IF | DECLARATOR | RETURN), ";" ; 
+RETURN = "return", OREXPRESSION
 DECLARATOR = (INT | BOOL | STRING), IDENTIFIER;
 WHILE = "while", "(", OREXPR ,")", COMMAND;
 IF = "if", "(", OREXPR ,")", COMMAND, (("else", COMMAND) | λ );
@@ -32,7 +34,7 @@ EXPRESSION = TERM, { ("+" | "-"), TERM } ;
 TERM = FACTOR, { ("*" | "/"), FACTOR } ; 
 FACTOR = (("+" | "-" | "!" ), FACTOR) | NUMBER | STRING | BOOL | "(", OREXPR,  ")" | IDENTIFIER | READLN;
 READLN = "readln", "(",")";
-IDENTIFIER = LETTER, { LETTER | DIGIT | "_" } ; 
+IDENTIFIER = LETTER, { LETTER | DIGIT | "_" }, { "(", {(OREXPR), ","}, ")" } ;
 NUMBER = DIGIT, { DIGIT } ; 
 STRING = '"', { LETTER | DIGIT }, '"' ; 
 LETTER = ( a | ... | z | A | ... | Z ) ; 

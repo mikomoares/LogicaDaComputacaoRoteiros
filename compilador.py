@@ -2,7 +2,7 @@ from sys import argv
 import re
 from nodes import *
 
-reserved = ["println", "while", "if", "else", "readln", "int", "bool", "string", "false", "true"]
+reserved = ["println", "while", "if", "else", "readln", "int", "bool", "string", "false", "true", "return"]
 
 class Token:
     def __init__(self, token_type, token_value):
@@ -76,6 +76,9 @@ class Tokenizer:
         elif self.origin[self.position] == '}':
             new = Token("CLOSE", "}")
             self.position+=1
+        elif self.origin[self.position] == ',':
+            new = Token(",", ",")
+            self.position+=1
         elif self.origin[self.position] == '"':
             self.position+=1
             while self.position<len(self.origin) and (self.origin[self.position] != '"'):
@@ -104,6 +107,52 @@ class Tokenizer:
 
 class Parser:
 
+    def parseFuncDefBlock():
+        funclists = []
+        while (Parser.tokens.actual.type != 'EOF'):
+            if Parser.tokens.actual.type == 'int' or Parser.tokens.actual.type == 'bool' or Parser.tokens.actual.type == 'string':
+                tp = Parser.tokens.actual.type
+                Parser.tokens.selectNext()
+                if Parser.tokens.actual.type == 'IDENT':
+                    func = Parser.tokens.actual.value
+                    Parser.tokens.selectNext()
+                    if (Parser.tokens.actual.type == '('):
+                        assig_list = []
+                        Parser.tokens.selectNext()
+                        while (Parser.tokens.actual.type != ')'):
+                            if Parser.tokens.actual.type == 'int' or Parser.tokens.actual.type == 'bool' or Parser.tokens.actual.type == 'string':
+                                tpvar = Parser.tokens.actual.type
+                                Parser.tokens.selectNext()
+                                if Parser.tokens.actual.type == 'IDENT':
+                                    var = Parser.tokens.actual.value
+                                    assig_list.append(AssignmentOp(var, [var, tpvar]))
+                                    Parser.tokens.selectNext()
+                                    if Parser.tokens.actual.type == ',':
+                                        Parser.tokens.selectNext()
+                                    elif Parser.tokens.actual.type == ')':
+                                        pass
+                                    else:
+                                        raise ValueError("ValueError exception thrown")
+                                else:
+                                    raise ValueError("ValueError exception thrown")
+                            else:
+                                raise ValueError("ValueError exception thrown")
+                        Parser.tokens.selectNext()
+                        varDec = VarDec((func, tp), assig_list)
+                        block = Parser.parseCommand();
+                        funcDef = FuncDef(func, [varDec, block])
+                        funclists.append(funcDef)
+                    else:
+                        raise ValueError("ValueError exception thrown")
+                else:
+                    raise ValueError("ValueError exception thrown")
+            else:
+                raise ValueError("ValueError exception thrown")
+        funcCall = FuncCall('main', [])
+        funclists.append(funcCall)
+        return BlockOp("block", funclists)
+         
+
     def parseBlock():
         results=[]
         if Parser.tokens.actual.type == 'OPEN':
@@ -124,6 +173,20 @@ class Parser:
             if Parser.tokens.actual.type == 'ASSIG':
                 Parser.tokens.selectNext()
                 result = SetterOp("=", [var, Parser.parseOrExpr()])
+            elif (Parser.tokens.actual.type == '('):
+                par_list = []
+                Parser.tokens.selectNext()
+                while Parser.tokens.actual.type != ')':
+                    par_list.append(Parser.parseOrExpr())
+                    if(Parser.tokens.actual.type == ','):
+                        Parser.selectNext()
+                    elif (Parser.tokens.actual.type == ')'):
+                        pass
+                    else:
+                        raise ValueError("ValueError exception thrown")
+                Parser.tokens.selectNext()
+                result = FuncCall(var, par_list)
+                    
             else:
                 raise ValueError("ValueError exception thrown")
             if Parser.tokens.actual.type == 'LB':
@@ -334,7 +397,7 @@ class Parser:
         table = SymbolTable()
         filtered_code = Preproc.filter(code)
         Parser.tokens = Tokenizer(filtered_code)
-        resposta = Parser.parseBlock()
+        resposta = Parser.parseFuncDefBlock()
         if Parser.tokens.actual.type == 'EOF':
             resposta.Evaluate(table)
         else:

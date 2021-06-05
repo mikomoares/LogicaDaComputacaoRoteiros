@@ -1,16 +1,14 @@
+int soma(int x){
+    println(x+1);
+}
 
-{
-    bool a;
-    int b;
-    int c;
-    
-    b = 32;
-    c = 32;
-    a = true;
+int soma2(int x){
+    println(x+2);
+}
 
-    if ((b && c) == a) {
-    	println(1);
-    }else{
-    	println(2);
-    }
+int main() {
+    int x;
+    x = 7;
+    soma(x);
+    soma2(x);
 }

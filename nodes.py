@@ -1,3 +1,4 @@
+dic_func = {}
 
 class Node:
     def __init__(self):
@@ -113,6 +114,48 @@ class PrintOp(Node):
         else:
             print(self.children[0].Evaluate(table)[0])
 
+class FuncCall(Node):
+    def __init__(self, value, children):
+        self.value = value
+        self.children = children
+    def Evaluate(self, table):
+        func_table = SymbolTable();
+        print(self.value)
+        print(dic_func)
+        if(self.value not in dic_func):
+            raise ValueError("ValueError exception thrown")
+        funcDef = dic_func[self.value]
+        if (len(funcDef.children[0].children)) != len(self.children):
+            raise ValueError("ValueError exception thrown")
+        funcDef.children[0].Evaluate(func_table)
+        for i in range(len(self.children)):
+            arg = self.children[i].Evaluate(table)
+            if(func_table.dic_var[funcDef.children[0].children[i].value][1] == arg[1]):
+                func_table.setter(funcDef.children[0].children[i].value, arg[0])
+            else:
+                raise ValueError("ValueError exception thrown")
+        funcDef.children[1].Evaluate(func_table)
+
+        # if("return" in func_table):
+        #     return func_table["return"]
+
+class FuncDef(Node):
+    def __init__(self, value, children):
+        self.value = value
+        self.children = children
+    def Evaluate(self, table):
+        if self.value not in dic_func:
+            dic_func[self.value] = self
+        else:
+            raise ValueError("ValueError exception thrown")
+
+class VarDec(Node):
+    def __init__(self, value, children):
+        self.value = value
+        self.children = children
+    def Evaluate(self, table):
+        for i in range(len(self.children)):
+            self.children[i].Evaluate(table)
 
 class AssignmentOp(Node):
     def __init__(self, value, children):
@@ -187,9 +230,16 @@ class SymbolTable:
     def __init__(self):
         self.dic_var = {}
 
+
     def getter(self, var):
         if var in self.dic_var:
             return self.dic_var[var]
+        else:
+            raise ValueError("ValueError exception thrown")
+
+    def func_getter(self, var):
+        if var in self.dic_func:
+            return self.dic_func[var]
         else:
             raise ValueError("ValueError exception thrown")
 
@@ -204,6 +254,14 @@ class SymbolTable:
         else:
             raise ValueError("ValueError exception thrown")
 
+    def func_setter(self, var, value):
+        if var in self.dic_func:
+            dic_func [var] = (var, "FUNC")
+        else:
+            raise ValueError("ValueError exception thrown")
+
     def declare(self, var, tp):
         self.dic_var[var] = (None, tp)
 
+    def func_declare(self, var, tp):
+        self.func_var[var] = (None, tp)

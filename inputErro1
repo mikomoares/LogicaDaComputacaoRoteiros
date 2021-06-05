@@ -1,0 +1,17 @@
+
+int Erro1(int x, int y){
+    return y;
+}
+
+
+int main() {
+    int a;
+    int b;
+    int x;
+    a = 3;
+    x = 4;
+    x = Erro1(x);
+    println(x);
+    println(a);
+    println(b);
+}

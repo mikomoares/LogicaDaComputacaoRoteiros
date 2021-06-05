@@ -1,0 +1,28 @@
+int while5(int x){
+    int i;
+    int soma;
+    i = 0;
+    soma = 0;
+    while(i<5){
+        soma = soma + x;
+        i = i + 1;
+    }
+    return soma;
+}
+
+int printOla(){
+    println("Ola");
+}
+
+int main() {
+    int x;
+    int resp;
+    int y;
+    x = 2;
+    y = readln();
+    if(y){
+        resp = while5(x);
+        printOla();
+        println(resp);
+    }
+}

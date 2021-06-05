@@ -178,7 +178,7 @@ class Parser:
                 while Parser.tokens.actual.type != ')':
                     par_list.append(Parser.parseOrExpr())
                     if(Parser.tokens.actual.type == ','):
-                        Parser.selectNext()
+                        Parser.tokens.selectNext()
                     elif (Parser.tokens.actual.type == ')'):
                         pass
                     else:

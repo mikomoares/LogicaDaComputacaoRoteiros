@@ -86,7 +86,7 @@ class StringVal(Node):
         self.children = children
 
     def Evaluate(self, table):
-        if type(self.value) == bool:
+        if type(self.value) == str:
             return (self.value, "string")
         else:
             raise ValueError("ValueError exception thrown")
@@ -120,8 +120,11 @@ class AssignmentOp(Node):
         self.children = children
 
     def Evaluate(self, table):
-        return table.declare(self.children[0], self.children[1])
-
+        if self.children[0] not in table.dic_var:
+            return table.declare(self.children[0], self.children[1])
+        else:
+            raise ValueError("ValueError exception thrown")
+            
 class SetterOp(Node):
     def __init__(self, value, children):
         self.value = value
